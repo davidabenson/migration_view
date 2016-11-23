@@ -56,7 +56,7 @@ module MigrationView
     File.delete(sqlFile) if fileExists && File.exist?(sqlFile)
   end
 
-  def self.drop_view(view, cascade)
+  def self.drop_view(view, cascade=true)
     Rails.logger.info("MigrationView::drop_view: #{view}")
 
     Rails.logger.info("MigrationView::drop_view: delete the view file")

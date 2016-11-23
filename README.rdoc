@@ -1,3 +1,39 @@
 = MigrationView
 
+I wanted a better way to manage views.  More like the way liquibase does.  
+Objectives:
+
+1. Create view in standard rails migration.
+2. Have views saved in db/views/#{view}.sql file
+3. When view file is modified, reload the view after all other migrations are run.
+4. If view is deleted recreate it.
+5. IF view deleted from other delete view x cascade.  recreate the deleted view.
+6. Have task to db:reload:view, to verify views are up todate. 
+
+= Install
+
+gem 'migration_view', git: 'https://github.com/davidabenson/migration_view.git'
+
+bundle install
+
+rails generate migration_view:install
+
+
+= Create a view
+  def change
+    
+    sql=<<-SQL_CODE
+      create or replace view product_view as
+        select id, name from product
+    SQL_CODE
+    create_view('product_view', sql)
+
+  end
+
+= Delete view
+  def change
+    cascade = true
+    drop_view('product_view', cascade)
+  end
+
 This project rocks and uses MIT-LICENSE.
