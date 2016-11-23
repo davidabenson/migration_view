@@ -12,9 +12,7 @@ Objectives:
 
 = Install
 
-```
-gem 'migration_view', git: 'https://github.com/davidabenson/migration_view.git'
-```
+"gem 'migration_view', git: 'https://github.com/davidabenson/migration_view.git'"
 
 bundle install
 
