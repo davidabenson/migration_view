@@ -9,6 +9,7 @@ Objectives:
 4. If view is deleted recreate it.
 5. If view deleted from other delete view x cascade.  recreate the deleted view.
 6. Have task to reload views,   rake db:reload:view 
+7. Natively support both postgres and mysql
 
 = Install
 
