@@ -18,6 +18,7 @@ bundle install
 
 rails generate migration_view:install
 
+rake db:migrate
 
 = Create a view
   def change
