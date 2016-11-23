@@ -7,8 +7,8 @@ Objectives:
 2. Have views saved in db/views/#{view}.sql file
 3. When view file is modified, reload the view after all other migrations are run.
 4. If view is deleted recreate it.
-5. IF view deleted from other delete view x cascade.  recreate the deleted view.
-6. Have task to db:reload:view, to verify views are up todate. 
+5. If view deleted from other delete view x cascade.  recreate the deleted view.
+6. Have task to reload views,   rake db:reload:view 
 
 = Install
 
