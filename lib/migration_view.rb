@@ -47,7 +47,7 @@ module MigrationView
     Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
     sql = File.read(Rails.root.join(sqlFile))
     Rails.logger.debug("view_sql: #{sql}")
-    execute sql
+    ActiveRecord::Base.connection.execute sql
 
     Rails.logger.debug("MigrationView:: Update schema_migraion_view")
     schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
@@ -68,7 +68,7 @@ module MigrationView
       sql = sql + " CASCADE"
     end
     Rails.logger.debug("MigrationView::drop_view: sql: #{sql}")
-    execute sql
+    ActiveRecord::Base.connection.execute sql
 
     Rails.logger.info("MigrationView::drop_view: delete schema_migration_view entry: #{view}")
     view = SchemaMigrationsViews.find_by_name(view)
