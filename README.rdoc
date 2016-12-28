@@ -21,7 +21,7 @@ rails generate migration_view:install
 
 rake db:migrate
 
-= mkdir your_project_dir/db/views
+    mkdir your_project_dir/db/views
 
 = Create a view
   def change
