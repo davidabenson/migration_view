@@ -46,7 +46,7 @@ module MigrationView
 
     Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
     sql = File.read(Rails.root.join(sqlFile))
-    Rails.logger.trace("view_sql: #{sql}")
+    Rails.logger.debug("view_sql: #{sql}")
     execute sql
 
     Rails.logger.debug("MigrationView:: Update schema_migraion_view")
