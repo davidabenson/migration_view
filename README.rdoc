@@ -21,6 +21,8 @@ rails generate migration_view:install
 
 rake db:migrate
 
+= mkdir your_project_dir/db/views
+
 = Create a view
   def change
     
@@ -28,14 +30,14 @@ rake db:migrate
       create or replace view product_view as
         select id, name from product
     SQL_CODE
-    create_view('product_view', sql)
+    MigrationView::create_view('product_view', sql)
 
   end
 
 = Delete view
   def change
     cascade = true
-    drop_view('product_view', cascade)
+    MigrationView::drop_view('product_view', cascade)
   end
 
 This project rocks and uses MIT-LICENSE.
