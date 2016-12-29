@@ -211,7 +211,7 @@ module MigrationView
   def self.create_procedure(proc, sql)
     Rails.logger.debug("MigrationView::create_procedure: #{proc}")
 
-    if (MigrationView::SchemaMigrationsProcs::proc_exists(proc))
+    if (MigrationView::SchemaMigrationsProcs::proc_exists?(proc))
       Rails.logger.info("MigrationView::create_procedure: Proc Exists: #{proc}")
       return
     end
