@@ -5,4 +5,8 @@ Rake::Task["db:migrate"].enhance do
   if (MigrationView::views_needupdate?)
     MigrationView::update_views()
   end
+
+  if (MigrationView::procs_needupdate?)
+    MigrationView::update_procs()
+  end
 end

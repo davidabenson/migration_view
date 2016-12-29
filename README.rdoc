@@ -21,7 +21,6 @@ rails generate migration_view:install
 
 rake db:migrate
 
-    mkdir your_project_dir/db/views
 
 = Create a view
   def change
@@ -39,5 +38,7 @@ rake db:migrate
     cascade = true
     MigrationView::drop_view('product_view', cascade)
   end
+
+= Create procedure
 
 This project rocks and uses MIT-LICENSE.

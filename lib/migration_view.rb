@@ -1,7 +1,50 @@
 require "active_record"
+
 require "app/models/schema_migrations_views.rb"
+require "app/models/schema_migrations_procs.rb"
 
 module MigrationView
+
+  def self.database_type()
+    adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
+    Rails.logger.debug("MigrationView::create_view: adapter_name: #{adapter_name}")
+
+    type = 'unsupported'
+    case
+      when adapter_name.starts_with?('mysql')
+        type = 'MYSQL'
+      when adapter_name.starts_with?('postgresql')
+        type = 'PSQL'
+    end
+  end
+
+
+
+  VIEW_EXISTS_PSQL=<<-END_OF_SQL_CODE
+      select count(*) from pg_catalog.pg_class c
+      inner join pg_catalog.pg_namespace n
+      on c.relnamespace=n.oid where n.nspname = 'public' and c.relname=?
+  END_OF_SQL_CODE
+
+  VIEW_EXISTS_MYSQL=<<-END_OF_SQL_CODE
+      SELECT  TABLE_NAME  FROM information_schema.tables  WHERE TABLE_TYPE LIKE 'VIEW' AND TABLE_NAME=?
+  END_OF_SQL_CODE
+
+  PROC_EXISTS_MYSQL=<<-END_OF_SQL_CODE
+      SELECT IF( COUNT(*) = 0, FALSE , TRUE ) AS ProcedureExists
+        FROM INFORMATION_SCHEMA.ROUTINES
+        WHERE ROUTINE_TYPE = 'PROCEDURE'
+        AND UCASE(ROUTINE_NAME) = UCASE(?);
+  END_OF_SQL_CODE
+
+  DROP_PROC_MYSQL=<<-END_OF_SQL_CODE
+      DROP PROCEDURE IF EXISTS
+  END_OF_SQL_CODE
+
+  def self.get_sql(kind)
+    property = "MigrationView::#{kind.upcase}_#{database_type}"
+    MigrationView.const_get(property)
+  end
 
   def self.view_exists?(view)
     ActiveRecord::Base.connection.table_exists? view
@@ -17,14 +60,15 @@ module MigrationView
 
     Rails.logger.debug("MigrationView::create_view: creating #{view}")
 
-    schema_view = SchemaMigrationsViews.find_by_name(view)
+    schema_view = MigrationView::SchemaMigrationsViews.find_by_name(view)
 
     Rails.logger.debug("MigrationView::create_view: schema_view #{schema_view}")
 
+    Dir.mkdir("db/views") unless File.exists?("db/views")
     sqlFile = "db/views/#{view}.sql"
 
     if schema_view.nil?
-      schema_view = SchemaMigrationsViews.new
+      schema_view = MigrationView::SchemaMigrationsViews.new
       schema_view.name = view
 
       fileExists = false
@@ -74,6 +118,9 @@ module MigrationView
     view = SchemaMigrationsViews.find_by_name(view)
     view.destroy
   end
+
+
+
 
   def self.views_needupdate?()
     views = MigrationView::load_view_list()
@@ -158,5 +205,143 @@ module MigrationView
       Rails.logger.info("MigrationView::managed view list: #{views}")
       views
   end
+
+
+
+  def self.create_procedure(proc, sql)
+    Rails.logger.debug("MigrationView::create_procedure: #{proc}")
+
+    if (MigrationView::SchemaMigrationsProcs::proc_exists(proc))
+      Rails.logger.info("MigrationView::create_procedure: Proc Exists: #{proc}")
+      return
+    end
+
+    Rails.logger.debug("MigrationView::create_procedure: creating #{proc}")
+
+    schema_proc = MigrationView::SchemaMigrationsProcs.find_by_name(proc)
+
+    Rails.logger.debug("MigrationView::create_procedure: schema_view #{schema_proc}")
+
+    Dir.mkdir("db/procs") unless File.exists?("db/procs")
+    sqlFile = "db/procs/#{proc}.sql"
+
+    if schema_proc.nil?
+      schema_proc = MigrationView::SchemaMigrationsProcs.new
+      schema_proc.name = proc
+
+      fileExists = false
+
+      Rails.logger.debug("MigrationView::create_procedure: sqlFile: #{sqlFile} ")
+
+      if File.exist?(sqlFile)
+        fileExists = true
+        sqlFile = 'db/procs/#{proc}-create.sql'
+      end
+      Rails.logger.debug("MigrationView::create_procedure: sqlFile: #{sqlFile}")
+
+      Rails.logger.debug("MigrationView::create_procedure: Create the proc file: try(#{sqlFile})")
+      open(sqlFile, 'w+') do |f|
+        f.puts sql
+      end
+
+    end
+
+    Rails.logger.debug("MigrationView::create_procedure Create the db proc: #{Rails.root.join(sqlFile)}")
+    sql = File.read(Rails.root.join(sqlFile))
+    Rails.logger.debug("proc_sql: #{sql}")
+    ActiveRecord::Base.connection.execute sql
+
+    Rails.logger.debug("MigrationView::create_procedure Update schema_migraion_proc")
+    schema_proc.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
+    schema_proc.save
+
+    File.delete(sqlFile) if fileExists && File.exist?(sqlFile)
+  end
+
+
+  def self.update_procs()
+    Rails.logger.info("MigrationView::update_views Update Procs")
+    procs = MigrationView::load_proc_list()
+
+    procs.each do |proc|
+      Rails.logger.info("MigrationView::update_proc: proc: #{proc}")
+
+      if MigrationView::SchemaMigrationsProcs::proc_exists?(proc)
+        Rails.logger.info("MigrationView::update_procs Delete old procs")
+
+        MigrationView::SchemaMigrationsProcs::drop_proc(proc)
+      end
+    end
+
+    procs.each do |proc|
+      Rails.logger.info("MigrationView::update_proc: Create new procs")
+      MigrationView::update_proc(proc)
+    end
+  end
+
+  def self.update_proc(proc)
+    Rails.logger.info("MigrationView::update_view: #{proc}")
+
+
+    Rails.logger.info("MigrationView::update_procs:Create the db proc")
+    sql = File.read(Rails.root.join("db/procs/#{proc}.sql"))
+    Rails.logger.info("MigrationView::update_procs: proc_sql: #{sql}")
+    ActiveRecord::Base.connection.execute(sql)
+
+    migration_proc = SchemaMigrationsProcs.find_by_name(proc)
+    migration_proc.hash_key = Digest::MD5.hexdigest(File.read("db/procs/#{proc}.sql"))
+    migration_proc.save
+  end
+
+  def self.load_proc_list()
+    stored_procs = MigrationView::SchemaMigrationsProcs.all.order('proc_order')
+
+    procs = []
+    stored_procs.each_with_index do |proc, i|
+      procs[i] = proc.name
+    end
+
+    Rails.logger.info("MigrationView::managed proc list: #{procs}")
+    procs
+  end
+
+  def self.procs_needupdate?()
+    procs = MigrationView::load_proc_list()
+
+    changed = false
+    missing = false
+    procs.each do |proc|
+      changed = MigrationView::proc_changed?(proc)
+      missing = MigrationView::proc_missing?(proc)
+      if (changed || missing)
+        break
+      end
+    end
+
+    Rails.logger.info("MigrationView::procs_needupdate? changed procs: #{changed}")
+    Rails.logger.info("MigrationView::procs_needupdate? missing procs: #{missing}")
+
+    if (changed || missing)
+      true
+    else
+      false
+    end
+  end
+
+  def self.proc_changed?(proc)
+    changed = false
+    saved_proc = SchemaMigrationsProcs.find_by_name(proc)
+    current_hash = Digest::MD5.hexdigest(File.read("db/procs/#{proc}.sql"))
+    if saved_proc.hash_key != current_hash
+      changed = true
+    end
+
+    changed
+  end
+
+  def self.proc_missing?(proc)
+    !MigrationView::SchemaMigrationsProcs::proc_exists?(proc)
+  end
+
 
 end
