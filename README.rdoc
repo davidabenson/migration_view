@@ -59,4 +59,13 @@ rake db:migrate
     MigrationView::drop_view('products', drop_if_exists)
   end
 
+= Debugging
+In you migration have:
+    class MigrationName < ActiveRecord::Migration
+      def change
+          Rails.logger = Logger.new(STDOUT)
+      end
+    end
+
+
 This project rocks and uses MIT-LICENSE.
