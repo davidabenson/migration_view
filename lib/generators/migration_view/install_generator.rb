@@ -21,7 +21,7 @@ module MigrationView
         puts "Add migration"
 
         exec "rails g migration create_schema_migrations_views name:string hash_key:string view_order:integer"
-        exec "rails g migration create_schema_migrations_procs name:string hash_key:string view_order:integer"
+        exec "rails g migration create_schema_migrations_procs name:string hash_key:string proc_order:integer"
       end
 
      end
