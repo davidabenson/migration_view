@@ -21,6 +21,10 @@ rails generate migration_view:install
 
 rake db:migrate
 
+= Tasks available
+    rake db:reload:view
+    rake db:reload:procs
+
 
 = Create a view
   def change
@@ -40,5 +44,19 @@ rake db:migrate
   end
 
 = Create procedure
+  def change
+
+    sql=<<-SQL_CODE
+         CREATE PROCEDURE products()
+              BEGIN
+                select * from products;
+
+               END;
+         END;
+    SQL_CODE
+
+    drop_if_exists = true
+    MigrationView::drop_view('products', drop_if_exists)
+  end
 
 This project rocks and uses MIT-LICENSE.

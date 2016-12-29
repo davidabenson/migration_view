@@ -208,12 +208,16 @@ module MigrationView
 
 
 
-  def self.create_procedure(proc, sql)
-    Rails.logger.debug("MigrationView::create_procedure: #{proc}")
+  def self.create_procedure(proc, sql, drop_if_exists=true)
+    Rails.logger.info("MigrationView::create_procedure: #{proc}")
 
     if (MigrationView::SchemaMigrationsProcs::proc_exists?(proc))
-      Rails.logger.info("MigrationView::create_procedure: Proc Exists: #{proc}")
-      return
+      Rails.logger.debug("MigrationView::create_procedure: Proc Exists: #{proc}")
+      if (drop_if_exists)
+        MigrationView::SchemaMigrationsProcs::drop_proc(proc)
+      else
+        return
+      end
     end
 
     Rails.logger.debug("MigrationView::create_procedure: creating #{proc}")
@@ -260,21 +264,21 @@ module MigrationView
 
 
   def self.update_procs()
-    Rails.logger.info("MigrationView::update_views Update Procs")
+    Rails.logger.debug("MigrationView::update_views Update Procs")
     procs = MigrationView::load_proc_list()
 
     procs.each do |proc|
-      Rails.logger.info("MigrationView::update_proc: proc: #{proc}")
+      Rails.logger.debug("MigrationView::update_proc: proc: #{proc}")
 
       if MigrationView::SchemaMigrationsProcs::proc_exists?(proc)
-        Rails.logger.info("MigrationView::update_procs Delete old procs")
+        Rails.logger.debug("MigrationView::update_procs Delete old procs")
 
         MigrationView::SchemaMigrationsProcs::drop_proc(proc)
       end
     end
 
     procs.each do |proc|
-      Rails.logger.info("MigrationView::update_proc: Create new procs")
+      Rails.logger.debug("MigrationView::update_proc: Create new procs")
       MigrationView::update_proc(proc)
     end
   end
@@ -283,9 +287,9 @@ module MigrationView
     Rails.logger.info("MigrationView::update_view: #{proc}")
 
 
-    Rails.logger.info("MigrationView::update_procs:Create the db proc")
+    Rails.logger.debug("MigrationView::update_procs:Create the db proc")
     sql = File.read(Rails.root.join("db/procs/#{proc}.sql"))
-    Rails.logger.info("MigrationView::update_procs: proc_sql: #{sql}")
+    Rails.logger.debug("MigrationView::update_procs: proc_sql: #{sql}")
     ActiveRecord::Base.connection.execute(sql)
 
     migration_proc = SchemaMigrationsProcs.find_by_name(proc)
