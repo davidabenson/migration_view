@@ -195,7 +195,7 @@ module MigrationView
   end
 
   def self.load_view_list()
-      stored_views = MigrationView::SchemaMigrationsViews.all.order('view_order')
+      stored_views = MigrationView::SchemaMigrationsViews.all.order('id')
 
       views = []
       stored_views.each_with_index do |view, i|
@@ -298,7 +298,7 @@ module MigrationView
   end
 
   def self.load_proc_list()
-    stored_procs = MigrationView::SchemaMigrationsProcs.all.order('proc_order')
+    stored_procs = MigrationView::SchemaMigrationsProcs.all.order('id')
 
     procs = []
     stored_procs.each_with_index do |proc, i|

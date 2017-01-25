@@ -7,8 +7,6 @@ module MigrationView
       puts "#{source_root}"
       desc "Adds need migration"
 
-
-
       def create_tasks
         puts "Extend db:migrate"
 
@@ -20,8 +18,11 @@ module MigrationView
       def create_migrations
         puts "Add migration"
 
-        exec "rails g migration create_schema_migrations_views name:string hash_key:string view_order:integer"
-        exec "rails g migration create_schema_migrations_procs name:string hash_key:string proc_order:integer"
+        exec "rails g migration create_schema_migrations_views name:string hash_key:string"
+
+        gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
+
+        exec "rails g migration create_schema_migrations_procs name:string hash_key:string"
       end
 
      end
