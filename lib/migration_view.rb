@@ -116,7 +116,10 @@ module MigrationView
 
     Rails.logger.info("MigrationView::drop_view: delete schema_migration_view entry: #{view}")
     view = SchemaMigrationsViews.find_by_name(view)
-    view.destroy
+    if (view)
+      view.destroy
+    end
+
   end
 
 
