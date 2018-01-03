@@ -50,6 +50,8 @@ module MigrationView
     ActiveRecord::Base.connection.table_exists? view
   end
 
+
+
   def self.create_view(view, sql)
     Rails.logger.debug("MigrationView::create_view: #{view}")
 
@@ -85,7 +87,6 @@ module MigrationView
       open(sqlFile, 'w+') do |f|
         f.puts sql
       end
-
     end
 
     Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
@@ -98,6 +99,20 @@ module MigrationView
     schema_view.save
 
     File.delete(sqlFile) if fileExists && File.exist?(sqlFile)
+  end
+
+  def self.recreate_view(view)
+    schema_view = MigrationView::SchemaMigrationsViews.find_by_name(view)
+    sqlFile = "db/views/#{view}.sql"
+
+    Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
+    sql = File.read(Rails.root.join(sqlFile))
+    Rails.logger.debug("view_sql: #{sql}")
+    ActiveRecord::Base.connection.execute sql
+
+    Rails.logger.debug("MigrationView:: Update schema_migraion_view")
+    schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
+    schema_view.save
   end
 
   def self.drop_view(view, cascade=true)
