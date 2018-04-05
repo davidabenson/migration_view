@@ -3,9 +3,6 @@ module MigrationView
 
     self.table_name = "schema_migrations_procs"
 
-    #self.primary_key = :version
-
-
     def self.get_single_value(sql)
       value = nil
       type = MigrationView.database_type()

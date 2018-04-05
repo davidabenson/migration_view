@@ -20,7 +20,7 @@ module MigrationView
 
         exec "rails g migration create_schema_migrations_views name:string hash_key:string"
 
-        gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
+        #gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
 
         exec "rails g migration create_schema_migrations_procs name:string hash_key:string"
       end
