@@ -41,6 +41,16 @@ module MigrationView
       DROP PROCEDURE IF EXISTS
   END_OF_SQL_CODE
 
+  PROC_EXISTS_PSQL=<<-END_OF_SQL_CODE
+      SELECT EXISTS (
+        SELECT *
+        FROM pg_catalog.pg_proc
+        JOIN pg_namespace ON pg_catalog.pg_proc.pronamespace = pg_namespace.oid
+        WHERE proname = ?
+            AND pg_namespace.nspname = 'schema_name'
+        )
+  END_OF_SQL_CODE
+
   def self.get_sql(kind)
     property = "MigrationView::#{kind.upcase}_#{database_type}"
     MigrationView.const_get(property)
@@ -49,8 +59,6 @@ module MigrationView
   def self.view_exists?(view)
     ActiveRecord::Base.connection.table_exists? view
   end
-
-
 
   def self.create_view(view, sql)
     Rails.logger.debug("MigrationView::create_view: #{view}")
