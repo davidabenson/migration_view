@@ -221,7 +221,7 @@ module MigrationView
   end
 
   def self.load_view_list()
-      stored_views = MigrationView::SchemaMigrationsViews.all.order('id')
+      stored_views = MigrationView::SchemaMigrationsViews.all.order('view_order')
 
       views = []
       stored_views.each_with_index do |view, i|
