@@ -207,14 +207,24 @@ module MigrationView
     end
   end
 
-  def self.update_view(view)
+  def self.update_view(view, sql=nil)
     Rails.logger.info("MigrationView::update_view: #{view}")
+    sqlFile = "db/views/#{view}.sql"
+    Rails.logger.debug("MigrationView::update_view: sqlFile: #{sqlFile} ")
 
-    Rails.logger.info("MigrationView::update_views:Create the db view")
-    sql = File.read(Rails.root.join("db/views/#{view}.sql"))
-    Rails.logger.info("MigrationView::update_views: view_sql: #{sql}")
+    if sql
+      # Write out new sql to file
+      Rails.logger.debug("MigrationView::update_view: Write the view: #{view} file: #{sql}")
+      open(sqlFile, 'w+') do |f|
+        f.puts sql
+      end
+    end
+
+    sql = File.read(Rails.root.join(sqlFile))
+    Rails.logger.debug("MigrationView::update_view: execute: #{view} file: #{sql}")
     ActiveRecord::Base.connection.execute(sql)
 
+    Rails.logger.debug("MigrationView::update_view: save: #{view}")
     migration_view = SchemaMigrationsViews.find_by_name(view)
     migration_view.hash_key = Digest::MD5.hexdigest(File.read("db/views/#{view}.sql"))
     migration_view.save
