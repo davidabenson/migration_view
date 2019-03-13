@@ -18,11 +18,11 @@ module MigrationView
       def create_migrations
         puts "Add migration"
 
-        exec "rails g migration create_schema_migrations_views name:string hash_key:string"
+        exec "rails g migration create_schema_migrations_views name:string hash_key:string view_order:integer"
 
         #gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
 
-        exec "rails g migration create_schema_migrations_procs name:string hash_key:string"
+        exec "rails g migration create_schema_migrations_procs name:string hash_key:string proc_order:integer"
       end
 
      end
