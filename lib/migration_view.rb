@@ -11,37 +11,36 @@ module MigrationView
 
     type = 'unsupported'
     case
-      when adapter_name.starts_with?('mysql')
-        type = 'MYSQL'
-      when adapter_name.starts_with?('postgresql')
-        type = 'PSQL'
+    when adapter_name.starts_with?('mysql')
+      type = 'MYSQL'
+    when adapter_name.starts_with?('postgresql')
+      type = 'PSQL'
     end
   end
 
 
-
-  VIEW_EXISTS_PSQL=<<-END_OF_SQL_CODE
+  VIEW_EXISTS_PSQL = <<-END_OF_SQL_CODE
       select count(*) from pg_catalog.pg_class c
       inner join pg_catalog.pg_namespace n
       on c.relnamespace=n.oid where n.nspname = 'public' and c.relname=?
   END_OF_SQL_CODE
 
-  VIEW_EXISTS_MYSQL=<<-END_OF_SQL_CODE
+  VIEW_EXISTS_MYSQL = <<-END_OF_SQL_CODE
       SELECT  TABLE_NAME  FROM information_schema.tables  WHERE TABLE_TYPE LIKE 'VIEW' AND TABLE_NAME=?
   END_OF_SQL_CODE
 
-  PROC_EXISTS_MYSQL=<<-END_OF_SQL_CODE
+  PROC_EXISTS_MYSQL = <<-END_OF_SQL_CODE
       SELECT IF( COUNT(*) = 0, FALSE , TRUE ) AS ProcedureExists
         FROM INFORMATION_SCHEMA.ROUTINES
         WHERE ROUTINE_TYPE = 'PROCEDURE'
         AND UCASE(ROUTINE_NAME) = UCASE(?);
   END_OF_SQL_CODE
 
-  DROP_PROC_MYSQL=<<-END_OF_SQL_CODE
+  DROP_PROC_MYSQL = <<-END_OF_SQL_CODE
       DROP PROCEDURE IF EXISTS
   END_OF_SQL_CODE
 
-  PROC_EXISTS_PSQL=<<-END_OF_SQL_CODE
+  PROC_EXISTS_PSQL = <<-END_OF_SQL_CODE
       SELECT EXISTS (
         SELECT *
         FROM pg_catalog.pg_proc
@@ -57,7 +56,7 @@ module MigrationView
   end
 
   def self.view_exists?(view)
-    ActiveRecord::Base.connection.table_exists? view
+    ActiveRecord::Base.connection.view_exists? view
   end
 
   def self.create_view(view, sql)
@@ -123,7 +122,7 @@ module MigrationView
     schema_view.save
   end
 
-  def self.drop_view(view, cascade=true)
+  def self.drop_view(view, cascade = true)
     Rails.logger.info("MigrationView::drop_view: #{view}")
 
     Rails.logger.info("MigrationView::drop_view: delete the view file")
@@ -146,8 +145,6 @@ module MigrationView
   end
 
 
-
-
   def self.views_needupdate?()
     views = MigrationView::load_view_list()
 
@@ -155,7 +152,11 @@ module MigrationView
     missing = false
     views.each do |view|
       changed = MigrationView::view_changed?(view)
+      Rails.logger.info("MigrationView::views_needupdate? changed views: #{view}") if changed
+
       missing = MigrationView::view_missing?(view)
+      Rails.logger.info("MigrationView::views_needupdate? missing views: #{view}") if missing
+
       if (changed || missing)
         break
       end
@@ -193,21 +194,24 @@ module MigrationView
     views.each do |view|
       Rails.logger.info("MigrationView::update_view: view: #{view}")
 
-      if view_exists?(view)
+      exists = view_exists?(view)
+      Rails.logger.info("MigrationView::update_view: view: exists: #{exists}")
+
+      if exists
         Rails.logger.info("MigrationView::update_views Delete old views")
         drop_sql = "drop view #{view} cascade"
         Rails.logger.info("MigrationView::update_views: #{drop_sql}")
         ActiveRecord::Base.connection.execute(drop_sql)
       end
-   end
+    end
 
-   views.each do |view|
+    views.each do |view|
       Rails.logger.info("MigrationView::update_views: Create new views")
       MigrationView::update_view(view)
     end
   end
 
-  def self.update_view(view, sql=nil)
+  def self.update_view(view, sql = nil)
     Rails.logger.info("MigrationView::update_view: #{view}")
     sqlFile = "db/views/#{view}.sql"
     Rails.logger.debug("MigrationView::update_view: sqlFile: #{sqlFile} ")
@@ -231,20 +235,19 @@ module MigrationView
   end
 
   def self.load_view_list()
-      stored_views = MigrationView::SchemaMigrationsViews.all.order('view_order')
+    stored_views = MigrationView::SchemaMigrationsViews.all.order('view_order')
 
-      views = []
-      stored_views.each_with_index do |view, i|
-         views[i] = view.name
-      end
+    views = []
+    stored_views.each_with_index do |view, i|
+      views[i] = view.name
+    end
 
-      Rails.logger.info("MigrationView::managed view list: #{views}")
-      views
+    Rails.logger.info("MigrationView::managed view list: #{views}")
+    views
   end
 
 
-
-  def self.create_procedure(proc, sql, drop_if_exists=true)
+  def self.create_procedure(proc, sql, drop_if_exists = true)
     Rails.logger.info("MigrationView::create_procedure: #{proc}")
 
     if (MigrationView::SchemaMigrationsProcs::proc_exists?(proc))
@@ -300,7 +303,7 @@ module MigrationView
 
 
   def self.update_procs()
-    Rails.logger.debug("MigrationView::update_views Update Procs")
+    Rails.logger.debug("MigrationView::update_procs Update Procs")
     procs = MigrationView::load_proc_list()
 
     procs.each do |proc|
