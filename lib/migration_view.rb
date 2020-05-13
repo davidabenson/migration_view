@@ -7,7 +7,7 @@ module MigrationView
 
   def self.database_type()
     adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
-    Rails.logger.debug("MigrationView::create_view: adapter_name: #{adapter_name}")
+    # Rails.logger.debug("MigrationView::create_view: adapter_name: #{adapter_name}")
 
     type = 'unsupported'
     case
@@ -60,18 +60,18 @@ module MigrationView
   end
 
   def self.create_view(view, sql)
-    Rails.logger.debug("MigrationView::create_view: #{view}")
+    # Rails.logger.debug("MigrationView::create_view: #{view}")
 
     if (view_exists?(view))
-      Rails.logger.info("MigrationView::create_view: View Exists: #{view}")
+      # Rails.logger.info("MigrationView::create_view: View Exists: #{view}")
       return
     end
 
-    Rails.logger.debug("MigrationView::create_view: creating #{view}")
+    # Rails.logger.debug("MigrationView::create_view: creating #{view}")
 
     schema_view = MigrationView::SchemaMigrationsViews.find_by_name(view)
 
-    Rails.logger.debug("MigrationView::create_view: schema_view #{schema_view}")
+    # Rails.logger.debug("MigrationView::create_view: schema_view #{schema_view}")
 
     Dir.mkdir("db/views") unless File.exists?("db/views")
     sqlFile = "db/views/#{view}.sql"
@@ -82,26 +82,26 @@ module MigrationView
 
       fileExists = false
 
-      Rails.logger.debug("MigrationView::create_view: sqlFile: #{sqlFile} ")
+      # Rails.logger.debug("MigrationView::create_view: sqlFile: #{sqlFile} ")
 
       if File.exist?(sqlFile)
         fileExists = true
         sqlFile = 'db/views/#{view}-create.sql'
       end
-      Rails.logger.debug("MigrationView::create_view: sqlFile: #{sqlFile}")
+      # Rails.logger.debug("MigrationView::create_view: sqlFile: #{sqlFile}")
 
-      Rails.logger.debug("MigrationView::create_view: Create the view file: try(#{sqlFile})")
+      # Rails.logger.debug("MigrationView::create_view: Create the view file: try(#{sqlFile})")
       open(sqlFile, 'w+') do |f|
         f.puts sql
       end
     end
 
-    Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
+    # Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
     sql = File.read(Rails.root.join(sqlFile))
-    Rails.logger.debug("view_sql: #{sql}")
+    # Rails.logger.debug("view_sql: #{sql}")
     ActiveRecord::Base.connection.execute sql
 
-    Rails.logger.debug("MigrationView:: Update schema_migraion_view")
+    # Rails.logger.debug("MigrationView:: Update schema_migraion_view")
     schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
     schema_view.save
 
@@ -112,20 +112,20 @@ module MigrationView
     schema_view = MigrationView::SchemaMigrationsViews.find_by_name(view)
     sqlFile = "db/views/#{view}.sql"
 
-    Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
+    # Rails.logger.debug("MigrationView:: Create the db view: #{Rails.root.join(sqlFile)}")
     sql = File.read(Rails.root.join(sqlFile))
-    Rails.logger.debug("view_sql: #{sql}")
+    # Rails.logger.debug("view_sql: #{sql}")
     ActiveRecord::Base.connection.execute sql
 
-    Rails.logger.debug("MigrationView:: Update schema_migraion_view")
+    # Rails.logger.debug("MigrationView:: Update schema_migraion_view")
     schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
     schema_view.save
   end
 
   def self.drop_view(view, cascade = true)
-    Rails.logger.info("MigrationView::drop_view: #{view}")
+    # Rails.logger.info("MigrationView::drop_view: #{view}")
 
-    Rails.logger.info("MigrationView::drop_view: delete the view file")
+    # Rails.logger.info("MigrationView::drop_view: delete the view file")
     File.delete("db/views/#{view}.sql") if File.exist?("db/views/#{view}.sql")
 
     Rails.logger.info("MigrationView::drop_view: drop the view: #{view}")
@@ -133,10 +133,10 @@ module MigrationView
     if cascade
       sql = sql + " CASCADE"
     end
-    Rails.logger.debug("MigrationView::drop_view: sql: #{sql}")
+    # Rails.logger.debug("MigrationView::drop_view: sql: #{sql}")
     ActiveRecord::Base.connection.execute sql
 
-    Rails.logger.info("MigrationView::drop_view: delete schema_migration_view entry: #{view}")
+    # Rails.logger.info("MigrationView::drop_view: delete schema_migration_view entry: #{view}")
     view = SchemaMigrationsViews.find_by_name(view)
     if (view)
       view.destroy
@@ -152,18 +152,18 @@ module MigrationView
     missing = false
     views.each do |view|
       changed = MigrationView::view_changed?(view)
-      Rails.logger.info("MigrationView::views_needupdate? changed views: #{view}") if changed
+      # Rails.logger.info("MigrationView::views_needupdate? changed views: #{view}") if changed
 
       missing = MigrationView::view_missing?(view)
-      Rails.logger.info("MigrationView::views_needupdate? missing views: #{view}") if missing
+      # Rails.logger.info("MigrationView::views_needupdate? missing views: #{view}") if missing
 
       if (changed || missing)
         break
       end
     end
 
-    Rails.logger.info("MigrationView::views_needupdate? changed views: #{changed}")
-    Rails.logger.info("MigrationView::views_needupdate? missing views: #{missing}")
+    # Rails.logger.info("MigrationView::views_needupdate? changed views: #{changed}")
+    # Rails.logger.info("MigrationView::views_needupdate? missing views: #{missing}")
 
     if (changed || missing)
       true
@@ -188,47 +188,47 @@ module MigrationView
   end
 
   def self.update_views()
-    Rails.logger.info("MigrationView::update_views Update Views")
+    # Rails.logger.info("MigrationView::update_views Update Views")
     views = MigrationView::load_view_list()
 
     views.each do |view|
-      Rails.logger.info("MigrationView::update_view: view: #{view}")
+      # Rails.logger.info("MigrationView::update_view: view: #{view}")
 
       exists = view_exists?(view)
-      Rails.logger.info("MigrationView::update_view: view: exists: #{exists}")
+      # Rails.logger.info("MigrationView::update_view: view: exists: #{exists}")
 
       if exists
-        Rails.logger.info("MigrationView::update_views Delete old views")
+        # Rails.logger.info("MigrationView::update_views Delete old views")
         drop_sql = "drop view #{view} cascade"
-        Rails.logger.info("MigrationView::update_views: #{drop_sql}")
+        # Rails.logger.info("MigrationView::update_views: #{drop_sql}")
         ActiveRecord::Base.connection.execute(drop_sql)
       end
     end
 
     views.each do |view|
-      Rails.logger.info("MigrationView::update_views: Create new views")
+      # Rails.logger.info("MigrationView::update_views: Create new views")
       MigrationView::update_view(view)
     end
   end
 
   def self.update_view(view, sql = nil)
-    Rails.logger.info("MigrationView::update_view: #{view}")
+    # Rails.logger.info("MigrationView::update_view: #{view}")
     sqlFile = "db/views/#{view}.sql"
-    Rails.logger.debug("MigrationView::update_view: sqlFile: #{sqlFile} ")
+    # Rails.logger.debug("MigrationView::update_view: sqlFile: #{sqlFile} ")
 
     if sql
       # Write out new sql to file
-      Rails.logger.debug("MigrationView::update_view: Write the view: #{view} file: #{sql}")
+      # Rails.logger.debug("MigrationView::update_view: Write the view: #{view} file: #{sql}")
       open(sqlFile, 'w+') do |f|
         f.puts sql
       end
     end
 
     sql = File.read(Rails.root.join(sqlFile))
-    Rails.logger.debug("MigrationView::update_view: execute: #{view} file: #{sql}")
+    # Rails.logger.debug("MigrationView::update_view: execute: #{view} file: #{sql}")
     ActiveRecord::Base.connection.execute(sql)
 
-    Rails.logger.debug("MigrationView::update_view: save: #{view}")
+    # Rails.logger.debug("MigrationView::update_view: save: #{view}")
     migration_view = SchemaMigrationsViews.find_by_name(view)
     migration_view.hash_key = Digest::MD5.hexdigest(File.read("db/views/#{view}.sql"))
     migration_view.save
@@ -242,16 +242,16 @@ module MigrationView
       views[i] = view.name
     end
 
-    Rails.logger.info("MigrationView::managed view list: #{views}")
+    # Rails.logger.info("MigrationView::managed view list: #{views}")
     views
   end
 
 
   def self.create_procedure(proc, sql, drop_if_exists = true)
-    Rails.logger.info("MigrationView::create_procedure: #{proc}")
+    # Rails.logger.info("MigrationView::create_procedure: #{proc}")
 
     if (MigrationView::SchemaMigrationsProcs::proc_exists?(proc))
-      Rails.logger.debug("MigrationView::create_procedure: Proc Exists: #{proc}")
+      # Rails.logger.debug("MigrationView::create_procedure: Proc Exists: #{proc}")
       if (drop_if_exists)
         MigrationView::SchemaMigrationsProcs::drop_proc(proc)
       else
@@ -259,11 +259,11 @@ module MigrationView
       end
     end
 
-    Rails.logger.debug("MigrationView::create_procedure: creating #{proc}")
+    # Rails.logger.debug("MigrationView::create_procedure: creating #{proc}")
 
     schema_proc = MigrationView::SchemaMigrationsProcs.find_by_name(proc)
 
-    Rails.logger.debug("MigrationView::create_procedure: schema_view #{schema_proc}")
+    # Rails.logger.debug("MigrationView::create_procedure: schema_view #{schema_proc}")
 
     Dir.mkdir("db/procs") unless File.exists?("db/procs")
     sqlFile = "db/procs/#{proc}.sql"
@@ -274,27 +274,27 @@ module MigrationView
 
       fileExists = false
 
-      Rails.logger.debug("MigrationView::create_procedure: sqlFile: #{sqlFile} ")
+      # Rails.logger.debug("MigrationView::create_procedure: sqlFile: #{sqlFile} ")
 
       if File.exist?(sqlFile)
         fileExists = true
         sqlFile = 'db/procs/#{proc}-create.sql'
       end
-      Rails.logger.debug("MigrationView::create_procedure: sqlFile: #{sqlFile}")
+      # Rails.logger.debug("MigrationView::create_procedure: sqlFile: #{sqlFile}")
 
-      Rails.logger.debug("MigrationView::create_procedure: Create the proc file: try(#{sqlFile})")
+      # Rails.logger.debug("MigrationView::create_procedure: Create the proc file: try(#{sqlFile})")
       open(sqlFile, 'w+') do |f|
         f.puts sql
       end
 
     end
 
-    Rails.logger.debug("MigrationView::create_procedure Create the db proc: #{Rails.root.join(sqlFile)}")
+    # Rails.logger.debug("MigrationView::create_procedure Create the db proc: #{Rails.root.join(sqlFile)}")
     sql = File.read(Rails.root.join(sqlFile))
-    Rails.logger.debug("proc_sql: #{sql}")
+    # Rails.logger.debug("proc_sql: #{sql}")
     ActiveRecord::Base.connection.execute sql
 
-    Rails.logger.debug("MigrationView::create_procedure Update schema_migraion_proc")
+    # Rails.logger.debug("MigrationView::create_procedure Update schema_migraion_proc")
     schema_proc.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
     schema_proc.save
 
@@ -303,32 +303,32 @@ module MigrationView
 
 
   def self.update_procs()
-    Rails.logger.debug("MigrationView::update_procs Update Procs")
+    # Rails.logger.debug("MigrationView::update_procs Update Procs")
     procs = MigrationView::load_proc_list()
 
     procs.each do |proc|
-      Rails.logger.debug("MigrationView::update_proc: proc: #{proc}")
+      # Rails.logger.debug("MigrationView::update_proc: proc: #{proc}")
 
       if MigrationView::SchemaMigrationsProcs::proc_exists?(proc)
-        Rails.logger.debug("MigrationView::update_procs Delete old procs")
+        # Rails.logger.debug("MigrationView::update_procs Delete old procs")
 
         MigrationView::SchemaMigrationsProcs::drop_proc(proc)
       end
     end
 
     procs.each do |proc|
-      Rails.logger.debug("MigrationView::update_proc: Create new procs")
+      # Rails.logger.debug("MigrationView::update_proc: Create new procs")
       MigrationView::update_proc(proc)
     end
   end
 
   def self.update_proc(proc)
-    Rails.logger.info("MigrationView::update_view: #{proc}")
+    # Rails.logger.info("MigrationView::update_view: #{proc}")
 
 
-    Rails.logger.debug("MigrationView::update_procs:Create the db proc")
+    # Rails.logger.debug("MigrationView::update_procs:Create the db proc")
     sql = File.read(Rails.root.join("db/procs/#{proc}.sql"))
-    Rails.logger.debug("MigrationView::update_procs: proc_sql: #{sql}")
+    # Rails.logger.debug("MigrationView::update_procs: proc_sql: #{sql}")
     ActiveRecord::Base.connection.execute(sql)
 
     migration_proc = SchemaMigrationsProcs.find_by_name(proc)
@@ -344,7 +344,7 @@ module MigrationView
       procs[i] = proc.name
     end
 
-    Rails.logger.info("MigrationView::managed proc list: #{procs}")
+    # Rails.logger.info("MigrationView::managed proc list: #{procs}")
     procs
   end
 
@@ -361,8 +361,8 @@ module MigrationView
       end
     end
 
-    Rails.logger.info("MigrationView::procs_needupdate? changed procs: #{changed}")
-    Rails.logger.info("MigrationView::procs_needupdate? missing procs: #{missing}")
+    # Rails.logger.info("MigrationView::procs_needupdate? changed procs: #{changed}")
+    # Rails.logger.info("MigrationView::procs_needupdate? missing procs: #{missing}")
 
     if (changed || missing)
       true
