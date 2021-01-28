@@ -101,11 +101,11 @@ module MigrationView
     ActiveRecord::Base.connection.execute sql
 
     # Rails.logger.debug("MigrationView:: Update schema_migraion_view")
-    view_order = MigrationView::SchemaMigrationsViews.maximum(:view_order)
-    view_order ||= 1
+    # view_order = MigrationView::SchemaMigrationsViews.maximum(:id)
+    # view_order ||= 1
 
     schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
-    schema_view.view_order = view_order
+    # schema_view.view_order = view_order
     schema_view.save
 
     File.delete(sqlFile) if fileExists && File.exist?(sqlFile)
@@ -237,7 +237,7 @@ module MigrationView
   end
 
   def self.load_view_list()
-    stored_views = MigrationView::SchemaMigrationsViews.all.order('view_order')
+    stored_views = MigrationView::SchemaMigrationsViews.all.order(:id)
 
     views = []
     stored_views.each_with_index do |view, i|
