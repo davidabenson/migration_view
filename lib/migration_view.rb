@@ -18,7 +18,6 @@ module MigrationView
     end
   end
 
-
   VIEW_EXISTS_PSQL = <<-END_OF_SQL_CODE
       select count(*) from pg_catalog.pg_class c
       inner join pg_catalog.pg_namespace n
@@ -102,6 +101,9 @@ module MigrationView
     ActiveRecord::Base.connection.execute sql
 
     # Rails.logger.debug("MigrationView:: Update schema_migraion_view")
+    view_order = MigrationView::SchemaMigrationsViews.maximum(:view_order)
+    view_order ||= 1
+
     schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
     schema_view.save
 
@@ -143,7 +145,6 @@ module MigrationView
     end
 
   end
-
 
   def self.views_needupdate?()
     views = MigrationView::load_view_list()
@@ -246,7 +247,6 @@ module MigrationView
     views
   end
 
-
   def self.create_procedure(proc, sql, drop_if_exists = true)
     # Rails.logger.info("MigrationView::create_procedure: #{proc}")
 
@@ -301,7 +301,6 @@ module MigrationView
     File.delete(sqlFile) if fileExists && File.exist?(sqlFile)
   end
 
-
   def self.update_procs()
     # Rails.logger.debug("MigrationView::update_procs Update Procs")
     procs = MigrationView::load_proc_list()
@@ -324,7 +323,6 @@ module MigrationView
 
   def self.update_proc(proc)
     # Rails.logger.info("MigrationView::update_view: #{proc}")
-
 
     # Rails.logger.debug("MigrationView::update_procs:Create the db proc")
     sql = File.read(Rails.root.join("db/procs/#{proc}.sql"))
@@ -385,6 +383,5 @@ module MigrationView
   def self.proc_missing?(proc)
     !MigrationView::SchemaMigrationsProcs::proc_exists?(proc)
   end
-
 
 end
