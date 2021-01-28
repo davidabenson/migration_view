@@ -105,7 +105,7 @@ module MigrationView
     view_order ||= 1
 
     schema_view.hash_key = Digest::MD5.hexdigest(File.read(sqlFile))
-    view_order.view_order = view_order
+    schema_view.view_order = view_order
     schema_view.save
 
     File.delete(sqlFile) if fileExists && File.exist?(sqlFile)
