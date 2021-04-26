@@ -132,7 +132,7 @@ module MigrationView
     File.delete("db/views/#{view}.sql") if File.exist?("db/views/#{view}.sql")
 
     Rails.logger.info("MigrationView::drop_view: drop the view: #{view}")
-    sql = "DROP VIEW #{view}"
+    sql = "DROP VIEW IF EXISTS #{view}"
     if cascade
       sql = sql + " CASCADE"
     end
