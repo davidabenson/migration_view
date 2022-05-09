@@ -19,5 +19,6 @@ Gem::Specification.new do |s|
 
   # s.required_ruby_version = '>= 2.5.4'
   s.add_dependency "rails", "~> 6.1.5.1"
+  s.add_dependency "nokogiri", ">= 1.5.9"
 
 end
