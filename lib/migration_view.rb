@@ -132,12 +132,14 @@ module MigrationView
     File.delete("db/views/#{view}.sql") if File.exist?("db/views/#{view}.sql")
 
     Rails.logger.info("MigrationView::drop_view: drop the view: #{view}")
-    sql = "DROP VIEW IF EXISTS #{view}"
-    if cascade
-      sql = sql + " CASCADE"
+    if MigrationView::view_exists?(view)
+     sql = "DROP VIEW IF EXISTS #{view}"
+      if cascade
+        sql = sql + " CASCADE"
+      end
+      # Rails.logger.debug("MigrationView::drop_view: sql: #{sql}")
+      ActiveRecord::Base.connection.execute sql
     end
-    # Rails.logger.debug("MigrationView::drop_view: sql: #{sql}")
-    ActiveRecord::Base.connection.execute sql
 
     # Rails.logger.info("MigrationView::drop_view: delete schema_migration_view entry: #{view}")
     view = SchemaMigrationsViews.find_by_name(view)
