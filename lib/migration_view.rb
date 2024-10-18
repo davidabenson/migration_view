@@ -72,7 +72,7 @@ module MigrationView
 
     # Rails.logger.debug("MigrationView::create_view: schema_view #{schema_view}")
 
-    Dir.mkdir("db/views") unless File.exists?("db/views")
+    Dir.mkdir("db/views") unless File.exist?("db/views")
     sqlFile = "db/views/#{view}.sql"
 
     if schema_view.nil?
@@ -266,7 +266,7 @@ module MigrationView
 
     # Rails.logger.debug("MigrationView::create_procedure: schema_view #{schema_proc}")
 
-    Dir.mkdir("db/procs") unless File.exists?("db/procs")
+    Dir.mkdir("db/procs") unless File.exist?("db/procs")
     sqlFile = "db/procs/#{proc}.sql"
 
     if schema_proc.nil?
